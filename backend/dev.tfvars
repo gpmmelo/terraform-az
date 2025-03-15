@@ -14,3 +14,9 @@ environment           = "dev"
 #client_secret         = "${{ secrets.ARM_CLIENT_SECRET }}"
 subscription_id       = "${secrets.AZURE_SUBSCRIPTION_ID}"
 #tenant_id             = "${{ secrets.AZURE_TENANT_ID }}"
+tags= {
+    Project     = "developer"
+    Owner       = "DevOps Team"
+    Cost-Center = "department it"
+    Environment = "dev"
+  }
