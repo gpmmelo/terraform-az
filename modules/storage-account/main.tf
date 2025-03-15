@@ -7,10 +7,11 @@
 #}
 
 # Create a Storage Account for the Terraform state
+# Create a Storage Account for the Terraform state
 resource "azurerm_storage_account" "storage" {
   name                     = var.storage_account_name
-  resource_group_name      = module.resource_group.resource_group_name.name
-  location                 = azurerm_resource_group.backend_rg.location
+  resource_group_name      = var.resource_group_name
+  location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 

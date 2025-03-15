@@ -11,9 +11,6 @@ locals {
     Cost-Center = "department it"
     Environment = "prod"
   }
-
-
-
   
 }
 
