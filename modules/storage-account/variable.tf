@@ -1,8 +1,8 @@
-variable "resource_group_name" {
-  description = "The name of the resource group for the backend."
-  type        = string
-  #default     = "tfstate-rg"
-}
+#variable "resource_group_name" {
+#  description = "The name of the resource group for the backend."
+#  type        = string
+#  #default     = "tfstate-rg"
+#}
 variable "location" {
   description = "The Azure region where the backend resources will be deployed."
   type        = string

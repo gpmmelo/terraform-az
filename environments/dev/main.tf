@@ -1,19 +1,17 @@
-terraform {
-  backend "azurerm" {
-    resource_group_name  = "tfstate-rg"
-    storage_account_name = "tfstatestorage"
-    container_name       = "tfstate"
-    key                  = "dev/terraform.tfstate" # Unique key for each environment
-  }
+module "resource_group" {
+  source = "../../modules/resource_group"
+  name = "rg-dev"
+  tags = "env = dev"
 }
 
+
+
 module "avm-res-network-virtualnetwork" {
-  source = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.8.1"
+  source = "../../modules/vnet"
   address_space       = ["10.0.0.0/16"]
   location            = "East US"
   name                = "myVNet"
-  resource_group_name = "myResourceGroup"
+  resource_group_name = module.resource_group.name
   subnets = {
     "subnet1" = {
       name             = "subnet1"
