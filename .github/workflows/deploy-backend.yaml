@@ -27,7 +27,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}  # Use the JSON credentials
           client-id: ${{ secrets.AZURE_CLIENT_ID }}  # Required for SERVICE_PRINCIPAL
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}  # Required for SERVICE_PRINCIPAL
-          subscription-id: ${{ secrets.AZURE_TENANT_ID }}  # Required for SERVICE_PRINCIPAL
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Required for SERVICE_PRINCIPAL
           enable-AzPSSession: true  # Optional: Enable PowerShell session
       
       - name: Azure CLI script
