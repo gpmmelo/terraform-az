@@ -10,7 +10,7 @@ storage_container_name = "tfstate"
 environment           = "dev"
 
 # Azure Credentials (from GitHub Secrets)
-client_id             = "${{ secrets.ARM_CLIENT_ID }}"
-client_secret         = "${{ secrets.ARM_CLIENT_SECRET }}"
-subscription_id       = "${{ secrets.ARM_SUBSCRIPTION_ID }}"
-tenant_id             = "${{ secrets.ARM_TENANT_ID }}"
+#client_id             = "${{ secrets.ARM_CLIENT_ID }}"
+#client_secret         = "${{ secrets.ARM_CLIENT_SECRET }}"
+#subscription_id       = "${{ secrets.ARM_SUBSCRIPTION_ID }}"
+#tenant_id             = "${{ secrets.ARM_TENANT_ID }}"
