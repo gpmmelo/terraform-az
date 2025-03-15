@@ -24,7 +24,7 @@ jobs:
       - uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          environment: 'AzureStack'
+          environment: 'developer'
           enable-AzPSSession: true
 
       - name: Set up Terraform
