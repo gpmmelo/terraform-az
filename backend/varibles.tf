@@ -44,9 +44,8 @@ variable "tenant_id" {
   #sensitive   = true
 }
 
-
-#variable "client_secret" {
-#  description = "Azure Client Secret (Service Principal Password)."
-#  type        = string
-#  #sensitive   = true
-#}
+variable "client_secret" {
+  description = "Azure Client Secret (Service Principal Password)."
+  type        = string
+  #sensitive   = true
+}
