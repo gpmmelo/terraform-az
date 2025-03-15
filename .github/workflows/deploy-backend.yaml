@@ -17,11 +17,6 @@ jobs:
           - environment: prod
             branch: main  # Prod only runs on main branch
 
-    # Only run prod if manually triggered or on main branch
-    if: |
-      (matrix.environment == 'dev' && github.ref == 'refs/heads/developer') ||
-      (matrix.environment == 'prod' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch')
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -30,6 +25,18 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.0
+
+      - name: Check environment conditions
+        id: check_conditions
+        run: |
+          if [[ "${{ matrix.environment }}" == "dev" && "${{ github.ref }}" == "refs/heads/developer" ]]; then
+            echo "Running dev deployment"
+          elif [[ "${{ matrix.environment }}" == "prod" && "${{ github.ref }}" == "refs/heads/main" && "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "Running prod deployment"
+          else
+            echo "Skipping deployment for ${{ matrix.environment }}"
+            exit 78  # Skip this job
+          fi
 
       - name: Terraform Init
         id: init
