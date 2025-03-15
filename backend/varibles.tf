@@ -29,18 +29,18 @@ variable "environment" {
 }
 variable "subscription_id" {
   description = "Azure Subscription ID."
-  type        = uuid
+  type        = string
   #sensitive   = true
 }
 
 variable "client_id" {
   description = "Azure Client ID (Service Principal App ID)."
-  type        = uuid
+  type        = string
   #sensitive   = true
 }
 variable "tenant_id" {
   description = "Azure Tenant ID."
-  type        = uuid
+  type        = string
   #sensitive   = true
 }
 
