@@ -1,11 +1,16 @@
-environment = "dev"
-resource_group_name    = "rg-dev"
+# Resource Group
+resource_group_name    = "my-resource-group-dev"
 location              = "East US"
-storage_account_name  = "bah123456mystorageaccount"
-storage_container_name = "devtfstate"
-  tags = {
-    Project     = "developer"
-    Owner       = "DevOps Team"
-    Cost-Center = "department it"
-    Environment = "dev"
-  }
+
+# Storage Account
+storage_account_name  = "mystorageaccountdev"
+storage_container_name = "tfstate"
+
+# Environment
+environment           = "dev"
+
+# Azure Credentials (from GitHub Secrets)
+subscription_id       = "${{ secrets.ARM_SUBSCRIPTION_ID }}"
+client_id             = "${{ secrets.ARM_CLIENT_ID }}"
+client_secret         = "${{ secrets.ARM_CLIENT_SECRET }}"
+tenant_id             = "${{ secrets.ARM_TENANT_ID }}"

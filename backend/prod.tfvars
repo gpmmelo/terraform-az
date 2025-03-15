@@ -1,10 +1,16 @@
-resource_group_name    = "rg-prod"
+# Resource Group
+resource_group_name    = "my-resource-group-prod"
 location              = "East US"
-storage_account_name  = "1234prodmystorageaccount"
-storage_container_name = "prodtfstate"
-  tags = {
-    Project     = "developer"
-    Owner       = "DevOps Team"
-    Cost-Center = "department it"
-    Environment = "prod"
-  }
+
+# Storage Account
+storage_account_name  = "mystorageaccountprod"
+storage_container_name = "tfstate"
+
+# Environment
+environment           = "prod"
+
+# Azure Credentials (from GitHub Secrets)
+subscription_id       = "${{ secrets.ARM_SUBSCRIPTION_ID }}"
+client_id             = "${{ secrets.ARM_CLIENT_ID }}"
+client_secret         = "${{ secrets.ARM_CLIENT_SECRET }}"
+tenant_id             = "${{ secrets.ARM_TENANT_ID }}"
