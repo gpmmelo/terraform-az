@@ -23,6 +23,7 @@ jobs:
 
       - uses: azure/login@v2
         with:
+          auth-type: IDENTITY
           creds: ${{ secrets.AZURE_CREDENTIALS }}
           environment: 'developer'
           enable-AzPSSession: true
