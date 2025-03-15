@@ -21,7 +21,7 @@ variable "storage_container_name" {
 variable "tags" {
   description = "Tags to apply to the resources."
   type        = map(string)
-  default     = {}
+  #default     = {}
 }
 variable "environment" {
   description = "The environment (dev or prod)."
