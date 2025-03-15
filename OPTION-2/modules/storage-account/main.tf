@@ -1,6 +1,3 @@
-provider "azurerm" {
-  features {}
-}
 
 # Create a Resource Group for the backend
 resource "azurerm_resource_group" "backend_rg" {
