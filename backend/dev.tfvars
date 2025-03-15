@@ -3,7 +3,7 @@ resource_group_name    = "my-resource-group-dev"
 location              = "East US"
 
 # Storage Account
-storage_account_name  = "mystorageaccountdev"
+storage_account_name  = "1234556mystorageaccountdev"
 storage_container_name = "tfstate"
 
 # Environment

@@ -27,6 +27,7 @@ variable "environment" {
   description = "The environment (dev or prod)."
   type        = string
 }
+/*
 variable "subscription_id" {
   description = "Azure Subscription ID."
   type        = string
@@ -49,3 +50,5 @@ variable "client_secret" {
   type        = string
   #sensitive   = true
 }
+
+/*
