@@ -33,24 +33,20 @@ variable "subscription_id" {
   #sensitive   = true
 }
 
-/*
-
-
 variable "client_id" {
   description = "Azure Client ID (Service Principal App ID)."
   type        = string
   #sensitive   = true
 }
-
-variable "client_secret" {
-  description = "Azure Client Secret (Service Principal Password)."
-  type        = string
-  #sensitive   = true
-}
-
 variable "tenant_id" {
   description = "Azure Tenant ID."
   type        = string
   #sensitive   = true
 }
-*/
+
+
+#variable "client_secret" {
+#  description = "Azure Client Secret (Service Principal Password)."
+#  type        = string
+#  #sensitive   = true
+#}
