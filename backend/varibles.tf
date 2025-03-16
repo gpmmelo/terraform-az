@@ -31,10 +31,10 @@ variable "environment" {
 variable "subscription_id" {
   description = "Azure Subscription ID."
   type        = string
- # default = "value"
+ default = "dcb704e1-b807-4206-b060-767cfffe8fff"
   #sensitive   = true
 }
-
+/*
 variable "client_id" {
   description = "Azure Client ID (Service Principal App ID)."
   type        = string
@@ -51,4 +51,4 @@ variable "client_secret" {
   type        = string
   #sensitive   = true
 }
-
+*/
