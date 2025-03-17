@@ -1,3 +1,6 @@
+#rg
+name     = "rg-dev"
+location = "eastus"
 
 tags = {
   Project     = "developer"
@@ -13,8 +16,7 @@ subnet_name     = "dev-subnet"
 subnet_prefixes = ["10.0.2.0/24"]
 
 #compute
-nic_name = "dev-nic"
-
+nic_name        = "dev-nic"
 vm_name         = "dev-vm"
 vm_size         = "Standard_F2"
 admin_username  = "adminuser"
