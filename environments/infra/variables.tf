@@ -1,3 +1,7 @@
+#sub
+variable "subscription_id" {}
+
+#rg
 variable "name" {
   description = "The name of the resource group."
   type        = string

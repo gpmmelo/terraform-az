@@ -45,6 +45,9 @@ No resources.
 ## Example the tfvars
 
 ````
+#sub
+subscription_id = "xxxxxxxxxxxxx"
+
 #rg
 name     = "rg-dev"
 location = "eastus"
