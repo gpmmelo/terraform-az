@@ -79,18 +79,63 @@ For detailed documentation on each module, navigate to the respective module's d
 
 ## Usage
 
-To use a module from this repository, add the following to your Terraform configuration:
+## ## Usage
 
-```hcl
-module "example_module" {
-  source = "github.com/gpmmelo/terraform-az//modules/<module_name>"
+### Deploy Manually Using Terraform CLI
 
-  # Required variables
-  resource_group_name = "my-resource-group"
-  location            = "East US"
+#### Step 1: Create the Backend (Storage Account for Terraform State)
 
-  # Optional variables
-  tags = {
-    environment = "dev"
-  }
-}
+Before deploying the infrastructure, you need to create a backend to store the Terraform state file. This is done using the `backend` configuration.
+
+1. Navigate to the `backend` directory:
+   ```bash
+   cd backend
+   ```
+2. Initialize Terraform:
+   ```bash
+   terraform init
+   ```
+3. Plan the backend deployment for the dev environment:
+   ```bash
+   terraform plan -var-file=dev.tfvars
+   ```
+4. Apply the backend deployment for the dev environment:
+   ```bash
+   terraform apply -var-file=dev.tfvars
+   ```
+5. Repeat the process for the prod environment:
+   ```bash
+   terraform plan -var-file=prod.tfvars
+   terraform apply -var-file=prod.tfvars
+   ```
+   This will create a storage account and container to store the Terraform state file for each environment.
+
+#### Step 2: Deploy the Infrastructure
+
+Once the backend is set up, you can deploy the infrastructure.
+
+1. Navigate to the `infra` directory:
+   ```bash
+   cd ../infra
+   ```
+2. Initialize Terraform to configure the backend:
+   ```bash
+   terraform init
+   ```
+3. Plan the infrastructure deployment for the dev environment:
+   ```bash
+   terraform plan -var-file=dev.tfvars
+   ```
+4. Apply the infrastructure deployment for the dev environment:
+   ```bash
+   terraform apply -var-file=dev.tfvars
+   ```
+5. Repeat the process for the prod environment:
+   ```bash
+   terraform plan -var-file=prod.tfvars
+   terraform apply -var-file=prod.tfvars
+   ```
+
+**Notes:**
+- Replace `dev.tfvars` and `prod.tfvars` with the appropriate variable files for your environments.
+- Ensure you have authenticated with Azure using `az login` before running Terraform commands.

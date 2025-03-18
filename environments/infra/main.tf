@@ -8,11 +8,11 @@ module "network" {
   source              = "../../modules/network"
   resource_group_name = module.rg.resource_group_name
   location            = module.rg.resource_group_location
-  vnet_name       = var.vnet_name
-  address_space   = var.address_space
-  subnet_name     = var.subnet_name
-  subnet_prefixes = var.subnet_prefixes
-  tags            = var.tags
+  vnet_name           = var.vnet_name
+  address_space       = var.address_space
+  subnet_name         = var.subnet_name
+  subnet_prefixes     = var.subnet_prefixes
+  tags                = var.tags
 }
 module "compute" {
   source              = "../../modules/compute"
