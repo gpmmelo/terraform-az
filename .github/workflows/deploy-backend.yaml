@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Deploy to dev environment
+  # Deploy Backend first
   deploy-backend:
     if: github.ref == 'refs/heads/developer'  # Only run for developer branch
     runs-on: ubuntu-latest
@@ -26,11 +26,11 @@ jobs:
       - name: Azure Login
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}  # Use the JSON credentials
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}  # Required for SERVICE_PRINCIPAL
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}  # Required for SERVICE_PRINCIPAL
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Required for SERVICE_PRINCIPAL
-          enable-AzPSSession: true  # Optional: Enable PowerShell session
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
@@ -38,23 +38,21 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        id: init
         run: terraform init
-        working-directory: ./backend
+        working-directory: ./environments/backend
 
       - name: Terraform Plan for Dev
-        id: plan-dev
         run: terraform plan -var-file=dev.tfvars
-        working-directory: ./backend
+        working-directory: ./environments/backend
 
       - name: Terraform Apply for Dev
-        id: apply-dev
         run: terraform apply -auto-approve -var-file=dev.tfvars
-        working-directory: ./backend
+        working-directory: ./environments/backend
 
-
+  # Deploy Dev Infrastructure AFTER Backend is deployed
   deploy-dev:
-    if: github.ref == 'refs/heads/developer'  # Only run for developer branch
+    needs: deploy-backend  # Runs only after backend deployment is successful
+    if: github.ref == 'refs/heads/developer'
     runs-on: ubuntu-latest
 
     steps:
@@ -64,11 +62,11 @@ jobs:
       - name: Azure Login
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}  # Use the JSON credentials
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}  # Required for SERVICE_PRINCIPAL
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}  # Required for SERVICE_PRINCIPAL
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Required for SERVICE_PRINCIPAL
-          enable-AzPSSession: true  # Optional: Enable PowerShell session
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
@@ -76,25 +74,20 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        id: init
         run: terraform init
-        working-directory: ./infra
+        working-directory: ./environments/infra
 
       - name: Terraform Plan for Dev
-        id: plan-dev
         run: terraform plan -var-file=dev.tfvars
-        working-directory: ./infra
+        working-directory: ./environments/infra
 
       - name: Terraform Apply for Dev
-        id: apply-dev
         run: terraform apply -auto-approve -var-file=dev.tfvars
-        working-directory: ./infra
+        working-directory: ./environments/infra
 
-############################################################################################################################################################
-
-  # Destroy dev infrastructure (manual trigger)
+  # Destroy Dev Infra (Manual Trigger)
   destroy-dev:
-    if: github.event_name == 'workflow_dispatch'  # Only run when manually triggered
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     steps:
@@ -104,11 +97,11 @@ jobs:
       - name: Azure Login
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}  # Use the JSON credentials
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}  # Required for SERVICE_PRINCIPAL
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}  # Required for SERVICE_PRINCIPAL
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Required for SERVICE_PRINCIPAL
-          enable-AzPSSession: true  # Optional: Enable PowerShell session
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
@@ -116,12 +109,10 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        id: init
         run: terraform init
         working-directory: ./environments/infra
 
       - name: Terraform Plan for Destroy (Dev)
-        id: plan-destroy-dev
         run: terraform plan -destroy -var-file=dev.tfvars
         working-directory: ./environments/infra
 
@@ -129,18 +120,16 @@ jobs:
         uses: trstringer/manual-approval@v1
         with:
           secret: ${{ github.token }}
-          approvers: team-leads  # Replace with your team's GitHub username or team name
+          approvers: team-leads
 
       - name: Terraform Destroy (Dev)
-        id: destroy-dev
         run: terraform destroy -auto-approve -var-file=dev.tfvars
         working-directory: ./environments/infra
 
-############################################################################################################################################################
-
-  # Destroy backend infrastructure (manual trigger)
+  # Destroy Backend AFTER Destroying Infra
   destroy-backend:
-    if: github.event_name == 'workflow_dispatch'  # Only run when manually triggered
+    needs: destroy-dev  # Runs only after infra destruction is successful
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     steps:
@@ -150,11 +139,11 @@ jobs:
       - name: Azure Login
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}  # Use the JSON credentials
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}  # Required for SERVICE_PRINCIPAL
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}  # Required for SERVICE_PRINCIPAL
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Required for SERVICE_PRINCIPAL
-          enable-AzPSSession: true  # Optional: Enable PowerShell session
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
@@ -162,12 +151,10 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        id: init
         run: terraform init
         working-directory: ./environments/backend
 
       - name: Terraform Plan for Destroy (Dev)
-        id: plan-destroy-dev
         run: terraform plan -destroy -var-file=dev.tfvars
         working-directory: ./environments/backend
 
@@ -175,9 +162,8 @@ jobs:
         uses: trstringer/manual-approval@v1
         with:
           secret: ${{ github.token }}
-          approvers: team-leads  # Replace with your team's GitHub username or team name
+          approvers: team-leads
 
       - name: Terraform Destroy (Dev)
-        id: destroy-dev
         run: terraform destroy -auto-approve -var-file=dev.tfvars
         working-directory: ./environments/backend
