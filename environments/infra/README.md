@@ -44,7 +44,10 @@ No resources.
 
 ## Example the tfvars
 
-````
+````hcl
+#sub
+subscription_id = "xxxxxxxxxxxxx"
+
 #rg
 name     = "rg-dev"
 location = "eastus"
@@ -68,5 +71,5 @@ vm_name         = "dev-vm"
 vm_size         = "Standard_F2"
 admin_username  = "adminuser"
 public_key_path = "~/.ssh/id_rsa.pub"
-```
+````
 <!-- END_TF_DOCS -->

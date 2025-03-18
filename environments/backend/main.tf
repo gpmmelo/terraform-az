@@ -1,14 +1,14 @@
-resource "azurerm_resource_group" "rg" {
-  name     = "dev-resources"
-  location = "East US"
+module "rg" {
+  source   = "../../modules/resource_group"
+  name     = var.name
+  location = var.location
   tags     = var.tags
 }
-
 module "storage" {
   source               = "../../modules/storage"
-  storage_account_name = "devstatefile123456"
-  resource_group_name  = azurerm_resource_group.rg.name
-  location             = azurerm_resource_group.rg.location
-  container_name       = "dev-tfstate"
+  storage_account_name = var.storage_account_name 
+  resource_group_name = module.rg.resource_group_name
+  location            = module.rg.resource_group_location
+  container_name       = var.container_name
   tags                 = var.tags
 }
