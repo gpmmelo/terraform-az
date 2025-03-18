@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       backend_exists: ${{ steps.check.outputs.exists }}
-      
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -37,16 +37,20 @@ jobs:
         run: |
           terraform init -backend-config=backend-dev.tfvars -reconfigure
           if terraform state list | grep "backend_resource"; then
-            echo "backend_exists=true" >> $GITHUB_ENV
+            echo "exists=true" >> $GITHUB_ENV
+            echo "exists=true" >> $GITHUB_OUTPUT  # Correct output syntax
           else
-            echo "backend_exists=false" >> $GITHUB_ENV
+            echo "exists=false" >> $GITHUB_ENV
+            echo "exists=false" >> $GITHUB_OUTPUT
           fi
         working-directory: ./environments/backend
 
+
   deploy-backend:
     needs: check-backend
-    if: env.backend_exists == 'false'  # Skip if backend exists
+    if: needs.check-backend.outputs.backend_exists == 'false'  # Use job outputs correctly
     runs-on: ubuntu-latest
+
 
     steps:
       - name: Checkout code
