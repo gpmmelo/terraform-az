@@ -5,7 +5,7 @@ on:
     branches:
       - developer  # Trigger on push to developer branch
     paths:
-      - 'backend/**'
+      - 'environments/**'
   workflow_dispatch:  # Allow manual triggers
 
 # Concurrency control to ensure only one workflow runs at a time
@@ -40,17 +40,17 @@ jobs:
       - name: Terraform Init
         id: init
         run: terraform init
-        working-directory: ./environments/backend
+        working-directory: ./backend
 
       - name: Terraform Plan for Dev
         id: plan-dev
         run: terraform plan -var-file=dev.tfvars
-        working-directory: ./environments/backend
+        working-directory: ./backend
 
       - name: Terraform Apply for Dev
         id: apply-dev
         run: terraform apply -auto-approve -var-file=dev.tfvars
-        working-directory: ./environments/backend
+        working-directory: ./backend
 
 
   deploy-dev:
@@ -78,17 +78,17 @@ jobs:
       - name: Terraform Init
         id: init
         run: terraform init
-        working-directory: ./environments/infra
+        working-directory: ./infra
 
       - name: Terraform Plan for Dev
         id: plan-dev
         run: terraform plan -var-file=dev.tfvars
-        working-directory: ./environments/infra
+        working-directory: ./infra
 
       - name: Terraform Apply for Dev
         id: apply-dev
         run: terraform apply -auto-approve -var-file=dev.tfvars
-        working-directory: ./environments/infra
+        working-directory: ./infra
 
 ############################################################################################################################################################
 
