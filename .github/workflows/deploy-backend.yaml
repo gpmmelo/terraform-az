@@ -1,7 +1,12 @@
 name: Deploy and Destroy Backend
 
 on:
-  workflow_dispatch:  # Manual trigger required
+  push:
+    branches:
+      - developer  # Trigger on push to developer branch
+    paths:
+      - 'environments/**'
+  workflow_dispatch:  # Allow manual triggers
 
 # Concurrency control to ensure only one workflow runs at a time
 concurrency:
@@ -9,86 +14,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-backend:
-    runs-on: ubuntu-latest
-    outputs:
-      exists: ${{ steps.check.outputs.exists }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.0
-
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: true
-
-      - name: Check if Backend Exists
-        id: check
-        run: |
-          terraform init -backend-config=backend-dev.tfvars -reconfigure
-          if terraform state list | grep "backend_resource" || true; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-        working-directory: ./environments/backend
-
-
-
-  deploy-backend:
-    needs: check-backend
-    if: needs.check-backend.outputs.backend_exists == 'false'  # Use job outputs correctly
-    runs-on: ubuntu-latest
-
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.0
-
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: true
-
-      - name: Terraform Init
-        run: terraform init -backend-config=backend-dev.tfvars -reconfigure
-        working-directory: ./environments/backend
-
-      - name: Terraform Apply for Dev
-        run: terraform apply -auto-approve -var-file=dev.tfvars
-        working-directory: ./environments/backend
-
+  # Deploy Dev Infrastructure AFTER Backend is deployed
   deploy-dev:
-    needs: deploy-backend
+    needs: deploy-backend  # Runs only after backend deployment is successful
+    if: github.ref == 'refs/heads/developer'
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.0
 
       - name: Azure Login
         uses: azure/login@v2
@@ -99,27 +32,31 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
 
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
       - name: Terraform Init
-        run: terraform init -backend-config=backend-dev.tfvars -reconfigure
+        run: terraform init -backend-config=backend-dev.tfvars
+        working-directory: ./environments/infra
+
+      - name: Terraform Plan for Dev
+        run: terraform plan -var-file=dev.tfvars
         working-directory: ./environments/infra
 
       - name: Terraform Apply for Dev
         run: terraform apply -auto-approve -var-file=dev.tfvars
         working-directory: ./environments/infra
 
+  # Destroy Dev Infra (Manual Trigger)
   destroy-dev:
-    if: github.event_name == 'workflow_dispatch' && inputs.confirm_destroy == true
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.0
 
       - name: Azure Login
         uses: azure/login@v2
@@ -130,8 +67,13 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
 
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
       - name: Terraform Init
-        run: terraform init -backend-config=backend-dev.tfvars -reconfigure
+        run: terraform init -backend-config=backend-dev.tfvars
         working-directory: ./environments/infra
 
       - name: Terraform Plan for Destroy (Dev)
@@ -148,19 +90,15 @@ jobs:
         run: terraform destroy -auto-approve -var-file=dev.tfvars
         working-directory: ./environments/infra
 
+  # Destroy Backend AFTER Destroying Infra
   destroy-backend:
-    needs: destroy-dev
-    if: github.event_name == 'workflow_dispatch' && inputs.confirm_destroy == true
+    needs: destroy-dev  # Runs only after infra destruction is successful
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.0
 
       - name: Azure Login
         uses: azure/login@v2
@@ -171,8 +109,13 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
 
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
       - name: Terraform Init
-        run: terraform init -backend-config=backend-dev.tfvars -reconfigure
+        run: terraform init -backend-config=backend-dev.tfvars
         working-directory: ./environments/backend
 
       - name: Terraform Plan for Destroy (Dev)
