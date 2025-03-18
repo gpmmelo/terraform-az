@@ -1,25 +1,23 @@
-name: Deploy and Destroy Environments
+name: Deploy and Destroy Infrastructure
 
 on:
   push:
     branches:
-      - developer  # Trigger on push to developer branch
+      - developer  # Trigger only on push to developer branch
     paths:
       - 'environments/**'
-  pull_request:
-    branches:
-      - main  # Trigger on PR to main (prod deployment after approval)
-  workflow_dispatch:  # Allow manual triggers for production deploy/destroy
+  workflow_dispatch:  # Allow manual trigger for destroy
 
 concurrency:
   group: deploy-and-destroy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # Deploy Dev on push to `developer`
+  # Deploy Dev Infrastructure
   deploy-dev:
     if: github.ref == 'refs/heads/developer'
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -38,7 +36,7 @@ jobs:
         with:
           terraform_version: 1.5.0
 
-      - name: Terraform Init
+      - name: Terraform Init (Backend Reference)
         run: terraform init -backend-config=backend-dev.tfvars
         working-directory: ./environments/infra
 
@@ -50,47 +48,11 @@ jobs:
         run: terraform apply -auto-approve -var-file=dev.tfvars
         working-directory: ./environments/infra
 
-  # Deploy Prod on PR merge to `main`
-  deploy-prod:
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: true
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.0
-
-      - name: Terraform Init
-        run: terraform init -backend-config=backend-prod.tfvars
-        working-directory: ./environments/infra
-
-      - name: Terraform Plan for Prod
-        run: terraform plan -var-file=prod.tfvars
-        working-directory: ./environments/infra
-
-      - name: Wait for manual approval (Production Deploy)
-        uses: hmarr/auto-approve-action@v3
-
-      - name: Terraform Apply for Prod
-        run: terraform apply -auto-approve -var-file=prod.tfvars
-        working-directory: ./environments/infra
-
-  # Destroy Dev Infra (Manual Trigger)
+  # Destroy Dev Infrastructure (Manual Trigger)
   destroy-dev:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -109,7 +71,7 @@ jobs:
         with:
           terraform_version: 1.5.0
 
-      - name: Terraform Init
+      - name: Terraform Init (Backend Reference)
         run: terraform init -backend-config=backend-dev.tfvars
         working-directory: ./environments/infra
 
@@ -125,44 +87,4 @@ jobs:
 
       - name: Terraform Destroy (Dev)
         run: terraform destroy -auto-approve -var-file=dev.tfvars
-        working-directory: ./environments/infra
-
-  # Destroy Prod Infra (Manual Trigger)
-  destroy-prod:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: true
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.0
-
-      - name: Terraform Init
-        run: terraform init -backend-config=backend-prod.tfvars
-        working-directory: ./environments/infra
-
-      - name: Terraform Plan for Destroy (Prod)
-        run: terraform plan -destroy -var-file=prod.tfvars
-        working-directory: ./environments/infra
-
-      - name: Wait for manual approval
-        uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ github.token }}
-          approvers: team-leads
-
-      - name: Terraform Destroy (Prod)
-        run: terraform destroy -auto-approve -var-file=prod.tfvars
         working-directory: ./environments/infra
