@@ -12,7 +12,7 @@ jobs:
   check-backend:
     runs-on: ubuntu-latest
     outputs:
-      backend_exists: ${{ steps.check.outputs.exists }}
+      exists: ${{ steps.check.outputs.exists }}
 
     steps:
       - name: Checkout code
@@ -36,14 +36,13 @@ jobs:
         id: check
         run: |
           terraform init -backend-config=backend-dev.tfvars -reconfigure
-          if terraform state list | grep "backend_resource"; then
-            echo "exists=true" >> $GITHUB_ENV
-            echo "exists=true" >> $GITHUB_OUTPUT  # Correct output syntax
+          if terraform state list | grep "backend_resource" || true; then
+            echo "exists=true" >> $GITHUB_OUTPUT
           else
-            echo "exists=false" >> $GITHUB_ENV
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
         working-directory: ./environments/backend
+
 
 
   deploy-backend:
@@ -109,8 +108,9 @@ jobs:
         working-directory: ./environments/infra
 
   destroy-dev:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && inputs.confirm_destroy == true
     runs-on: ubuntu-latest
+
 
     steps:
       - name: Checkout code
@@ -150,7 +150,7 @@ jobs:
 
   destroy-backend:
     needs: destroy-dev
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && inputs.confirm_destroy == true
     runs-on: ubuntu-latest
 
     steps:
