@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       backend_exists: ${{ steps.check.outputs.exists }}
-      
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -21,7 +21,7 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.5.0
+          terraform_version: 1.5.0  # Ensure Terraform is installed
 
       - name: Azure Login
         uses: azure/login@v2
@@ -42,6 +42,7 @@ jobs:
             echo "backend_exists=false" >> $GITHUB_ENV
           fi
         working-directory: ./environments/backend
+
 
   deploy-backend:
     needs: check-backend
