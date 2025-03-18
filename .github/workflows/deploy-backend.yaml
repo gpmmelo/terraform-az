@@ -1,82 +1,86 @@
-name: Deploy and Destroy Infrastructure
+name: Deploy and Destroy Environments
 
 on:
   push:
     branches:
-      - developer  # Trigger only on push to developer branch
+      - developer  # Trigger on push to developer branch
     paths:
       - 'environments/**'
-  workflow_dispatch:  # Allow manual trigger for destroy
+  pull_request:
+    branches:
+      - main  # Trigger on PR to main (prod deployment after approval)
+  workflow_dispatch:  # Allow manual triggers for production deploy/destroy
 
 concurrency:
   group: deploy-and-destroy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # Deploy Dev Infrastructure
+  # Deploy Dev on push to `developer`
   deploy-dev:
-    if: github.ref == 'refs/heads/developer'
+    if: github.ref == 'refs/heads/developer'  # Run only on developer branch
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Authenticate Terraform with Service Principal
+      - name: Set up Azure CLI
         run: |
-          echo "ARM_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> $GITHUB_ENV
-          echo "ARM_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}" >> $GITHUB_ENV
-          echo "ARM_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_ENV
-          echo "ARM_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          az --version
 
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.0
-
-      - name: Terraform Init (Backend Reference)
-        run: terraform init -backend-config=backend-dev.tfvars
+      - name: Run deploy.sh script
+        run: bash deploy.sh
         working-directory: ./environments/infra
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
-      - name: Terraform Plan for Dev
-        run: terraform plan -var-file=dev.tfvars
-        working-directory: ./environments/infra
-
-      - name: Terraform Apply for Dev
-        run: terraform apply -auto-approve -var-file=dev.tfvars
-        working-directory: ./environments/infra
-
-  # Destroy Dev Infrastructure (Manual Trigger)
-  destroy-dev:
-    if: github.event_name == 'workflow_dispatch'
+  # Deploy Prod on PR merge to `main`
+  deploy-prod:
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'  # Run only on PR to main
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: true
+      - name: Set up Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          az --version
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.0
-
-      - name: Terraform Init (Backend Reference)
-        run: terraform init -backend-config=backend-dev.tfvars
+      - name: Run deploy.sh script
+        run: bash deploy.sh
         working-directory: ./environments/infra
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
-      - name: Terraform Plan for Destroy (Dev)
-        run: terraform plan -destroy -var-file=dev.tfvars
+      - name: Wait for manual approval (Production Deploy)
+        uses: hmarr/auto-approve-action@v3
+
+  # Destroy Dev Infra (Manual Trigger)
+  destroy-dev:
+    if: github.event_name == 'workflow_dispatch'  # Run only on manual trigger
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          az --version
+
+      - name: Run destroy.sh script
+        run: bash destroy.sh
         working-directory: ./environments/infra
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
       - name: Wait for manual approval
         uses: trstringer/manual-approval@v1
@@ -84,6 +88,29 @@ jobs:
           secret: ${{ github.token }}
           approvers: team-leads
 
-      - name: Terraform Destroy (Dev)
-        run: terraform destroy -auto-approve -var-file=dev.tfvars
+  # Destroy Prod Infra (Manual Trigger)
+  destroy-prod:
+    if: github.event_name == 'workflow_dispatch'  # Run only on manual trigger
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          az --version
+
+      - name: Run destroy.sh script
+        run: bash destroy.sh
         working-directory: ./environments/infra
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+      - name: Wait for manual approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.token }}
+          approvers: team-leads
