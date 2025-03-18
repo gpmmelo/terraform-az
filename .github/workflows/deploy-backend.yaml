@@ -24,18 +24,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Azure CLI
-        run: |
-          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-          az --version
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}  # Use Service Principal credentials
 
-      - name: Run deploy.sh script
-        run: bash deploy.sh
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        run: terraform init -backend-config=backend-dev.tfvars
         working-directory: ./environments/infra
-        env:
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+      - name: Terraform Plan for Dev
+        run: terraform plan -var-file=dev.tfvars
+        working-directory: ./environments/infra
+
+      - name: Terraform Apply for Dev
+        run: terraform apply -auto-approve -var-file=dev.tfvars
+        working-directory: ./environments/infra
 
   # Deploy Prod on PR merge to `main`
   deploy-prod:
@@ -45,21 +54,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Azure CLI
-        run: |
-          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-          az --version
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}  # Use Service Principal credentials
 
-      - name: Run deploy.sh script
-        run: bash deploy.sh
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        run: terraform init -backend-config=backend-prod.tfvars
         working-directory: ./environments/infra
-        env:
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+      - name: Terraform Plan for Prod
+        run: terraform plan -var-file=prod.tfvars
+        working-directory: ./environments/infra
 
       - name: Wait for manual approval (Production Deploy)
         uses: hmarr/auto-approve-action@v3
+
+      - name: Terraform Apply for Prod
+        run: terraform apply -auto-approve -var-file=prod.tfvars
+        working-directory: ./environments/infra
 
   # Destroy Dev Infra (Manual Trigger)
   destroy-dev:
@@ -69,24 +87,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Azure CLI
-        run: |
-          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-          az --version
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}  # Use Service Principal credentials
 
-      - name: Run destroy.sh script
-        run: bash destroy.sh
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        run: terraform init -backend-config=backend-dev.tfvars
         working-directory: ./environments/infra
-        env:
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+      - name: Terraform Plan for Destroy (Dev)
+        run: terraform plan -destroy -var-file=dev.tfvars
+        working-directory: ./environments/infra
 
       - name: Wait for manual approval
         uses: trstringer/manual-approval@v1
         with:
           secret: ${{ github.token }}
           approvers: team-leads
+
+      - name: Terraform Destroy (Dev)
+        run: terraform destroy -auto-approve -var-file=dev.tfvars
+        working-directory: ./environments/infra
 
   # Destroy Prod Infra (Manual Trigger)
   destroy-prod:
@@ -96,21 +123,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Azure CLI
-        run: |
-          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-          az --version
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}  # Use Service Principal credentials
 
-      - name: Run destroy.sh script
-        run: bash destroy.sh
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        run: terraform init -backend-config=backend-prod.tfvars
         working-directory: ./environments/infra
-        env:
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+      - name: Terraform Plan for Destroy (Prod)
+        run: terraform plan -destroy -var-file=prod.tfvars
+        working-directory: ./environments/infra
 
       - name: Wait for manual approval
         uses: trstringer/manual-approval@v1
         with:
           secret: ${{ github.token }}
           approvers: team-leads
+
+      - name: Terraform Destroy (Prod)
+        run: terraform destroy -auto-approve -var-file=prod.tfvars
+        working-directory: ./environments/infra
