@@ -6,7 +6,6 @@ resource "azurerm_public_ip" "main" {
   sku                 = "Basic" # Change this to Basic
 
 }
-
 resource "azurerm_network_interface" "nic" {
   name                = var.nic_name
   location            = var.location
@@ -39,6 +38,11 @@ resource "azurerm_network_security_group" "main" {
   }
 }
 
+# Connect the security group to the network interface
+resource "azurerm_network_interface_security_group_association" "nsg" {
+  network_interface_id      = azurerm_network_interface.nic.id
+  network_security_group_id = azurerm_network_security_group.main.id
+}
 resource "azurerm_virtual_machine" "vm" {
   name                = var.vm_name
   resource_group_name = var.resource_group_name

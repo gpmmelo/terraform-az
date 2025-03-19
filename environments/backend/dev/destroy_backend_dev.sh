@@ -12,7 +12,7 @@ fi
 az login --service-principal --username "$ARM_CLIENT_ID" --password "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID"
 
 # Initialize Terraform with backend configuration
-terraform init -backend-config=backend-dev.tfvars
+terraform init 
 
 # Plan Terraform destruction
 terraform plan -destroy -var-file=dev.tfvars

@@ -58,7 +58,7 @@ tags = {
 
 # Terraform deploy backend
 
-## Prerequisites
+## Pre-requisites
 
 Before running Terraform, you need to generate Azure credentials and set them as environment variables.
 

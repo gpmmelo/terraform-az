@@ -5,7 +5,7 @@ set -e
 az login --service-principal --username "$ARM_CLIENT_ID" --password "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID"
 
 # Initialize Terraform with backend configuration
-terraform init 
+terraform init
 
 # Plan Terraform deployment
 terraform plan -var-file=prod.tfvars
