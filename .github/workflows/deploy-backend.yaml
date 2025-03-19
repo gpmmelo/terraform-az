@@ -40,7 +40,7 @@ jobs:
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
 
       - name: Terraform Plan for Dev
-        run: terraform plan -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars
+        run: terraform plan -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars
         working-directory: ./environments/infra
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -50,7 +50,7 @@ jobs:
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
 
       - name: Terraform Apply for Dev
-        run: terraform apply -auto-approve -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars
+        run: terraform apply -auto-approve -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars
         working-directory: ./environments/infra
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -82,7 +82,7 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
       - name: Terraform Plan for Prod
-        run: -var "admin_password=$ADMIN_PASSWORD" -var-file=prod.tfvars
+        run: terraform plan -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD_PROD" -var-file=prod.tfvars
         working-directory: ./environments/infra
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
