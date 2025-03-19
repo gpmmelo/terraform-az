@@ -1,4 +1,4 @@
-name: Destroy Environments
+name: Deploy Environments
 
 on:
   push:
@@ -30,7 +30,7 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        run: terraform init -backend-config=backend-dev.tfvars
+        run: terraform init -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -backend-config=backend-dev.tfvars
         working-directory: ./environments/infra
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -73,7 +73,7 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        run: terraform init -backend-config=backend-prod.tfvars
+        run: terraform init -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -backend-config=backend-prod.tfvars
         working-directory: ./environments/infra
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
