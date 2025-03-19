@@ -1,23 +1,24 @@
 #rg
-resource_group_name = "rg-prod"
-location            = "eastus"
+name     = "rg-prod-infra"
+location = "eastus"
 
+#network
+vnet_name       = "prod-vnet"
+address_space   = ["10.0.0.0/16"]
+subnet_name     = "prod-subnet"
+subnet_prefixes = ["10.0.2.0/24"]
+name_public_ip  = "prod-public-ip"
+my-public-ip    = "my-public-ip"
+
+#compute
+nic_name       = "prod-nic"
+vm_name        = "prod-vm"
+vm_size        = "Standard_F2"
+admin_username = "adminuser"
+nsg            = "my-nsg"
 tags = {
-  Project     = "developer"
+  Project     = "Production"
   Owner       = "DevOps Team"
   Cost-Center = "department it"
   Environment = "prod"
 }
-
-#network
-vnet_name       = "prod-vnet"
-address_space   = ["10.0.0.3/16"]
-subnet_name     = "prod-subnet"
-subnet_prefixes = ["10.0.3.0/24"]
-
-#compute
-nic_name        = "prod-nic"
-vm_name         = "prod-vm"
-vm_size         = "Standard_F2"
-admin_username  = "adminuser"
-public_key_path = "~/.ssh/id_rsa.pub"
