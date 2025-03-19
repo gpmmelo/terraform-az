@@ -9,7 +9,6 @@ address_space   = ["10.0.0.0/16"]
 subnet_name     = "dev-subnet"
 subnet_prefixes = ["10.0.2.0/24"]
 name_public_ip  = "dev-public-ip"
-my-public-ip    = "my-public-ip"
 
 
 #compute
