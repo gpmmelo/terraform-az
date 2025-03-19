@@ -8,7 +8,7 @@ address_space   = ["172.0.0.0/16"]
 subnet_name     = "prod-subnet"
 subnet_prefixes = ["172.0.2.0/24"]
 name_public_ip  = "prod-public-ip"
-my-public-ip    = "my-public-ip"
+my-public-ip    = "prod-my-public-ip"
 
 #compute
 nic_name       = "prod-nic"
