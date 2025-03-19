@@ -56,4 +56,93 @@ tags = {
 
 ````
 
+# Terraform deploy backend
+
+## Pre-requisites
+
+Before running Terraform, you need to generate Azure credentials and set them as environment variables.
+
+### 1. Generate Azure Credentials
+
+If you don't have a service principal, create one using the Azure CLI:
+
+```bash
+az ad sp create-for-rbac --name "TerraformCloudSP" --role="Contributor" --scopes="/subscriptions/YOUR_SUBSCRIPTION_ID"
+```
+
+This command will output:
+
+```json
+{
+  "appId": "xxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",  # This is the ARM_CLIENT_ID
+  "displayName": "TerraformCloudSP",
+  "password": "xxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",  # This is the ARM_CLIENT_SECRET
+  "tenant": "ed9f8e07-c324-4671-96a7-dbb4fe601de1"  # This is the ARM_TENANT_ID
+}
+```
+
+### 2. Export the Required Environment Variables
+
+Set these variables in your terminal before running Terraform:
+
+```bash
+export ARM_CLIENT_ID="xxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+export ARM_CLIENT_SECRET="xxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+export ARM_TENANT_ID="ed9f8e07-c324-4671-96a7-dbb4fe601de1"
+export ARM_SUBSCRIPTION_ID="dcb704e1-b807-4206-b060-767cfffe8fff"
+```
+
+If using Terraform Cloud, navigate to **Settings > Environment Variables** and add these variables.
+
+### 3. Deploy Using the Script
+
+A deployment script has been created to simplify the Terraform process.
+
+#### **Deploy Terraform Infrastructure**
+Run the following script manually:
+
+```bash
+#!/bin/bash
+set -e
+
+# Login to Azure using Service Principal
+az login --service-principal --username "$ARM_CLIENT_ID" --password "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID"
+
+# Initialize Terraform with backend configuration
+terraform init 
+
+# Plan Terraform deployment
+terraform plan -var-file=dev.tfvars
+
+# Apply Terraform deployment
+terraform apply -auto-approve -var-file=dev.tfvars
+```
+
+Save this script as `deploy.sh`, make it executable, and run:
+
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+#### **Destroy Terraform Infrastructure**
+To destroy resources manually, create a `destroy.sh` script:
+
+```bash
+#!/bin/bash
+set -e
+
+# Login to Azure using Service Principal
+az login --service-principal --username "$ARM_CLIENT_ID" --password "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID"
+
+# Destroy Terraform resources
+terraform destroy -auto-approve -var-file=dev.tfvars
+```
+
+Make it executable and run:
+
+```bash
+chmod +x destroy.sh
+./destroy.sh
+```
 <!-- END_TF_DOCS -->

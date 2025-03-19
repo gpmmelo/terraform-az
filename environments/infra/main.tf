@@ -14,15 +14,22 @@ module "network" {
   subnet_prefixes     = var.subnet_prefixes
   tags                = var.tags
 }
-module "compute" {
-  source              = "../../modules/compute"
-  nic_name            = "dev-nic"
-  resource_group_name = module.rg.resource_group_name
-  location            = module.rg.resource_group_location
-  subnet_id           = module.network.subnet_id
-  vm_name             = "dev-vm"
-  vm_size             = "Standard_F2"
-  admin_username      = "adminuser"
-  public_key_path     = "~/.ssh/id_rsa.pub"
-  tags                = var.tags
+
+module "vm" {
+  source                = "../../modules/compute"
+  vm_name               = var.vnet_name
+  name_public_ip        = var.name_public_ip
+  resource_group_name   = module.rg.resource_group_name
+  location              = module.rg.resource_group_location
+  public_ip_allocation  = "Dynamic"
+  nic_name              = var.nic_name
+  subnet_id             = module.network.subnet_id
+  vnet_address_space    = module.network.address_space
+  subnet_address_prefix = module.network.subnet_prefixes
+  nsg                   = var.nsg
+  vm_size               = var.vm_size
+  admin_username        = var.admin_username
+  admin_password        = var.admin_password
+  tags                  = var.tags
+
 }
