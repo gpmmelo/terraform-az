@@ -39,7 +39,7 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
       - name: Terraform Plan for Destroy (Dev)
-        run: terraform plan -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars -lock=false
+        run: terraform plan -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars -lock=false
         working-directory: ./environments/infra
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -54,7 +54,7 @@ jobs:
           approvers: team-leads
 
       - name: Terraform Destroy (Dev)
-        run: terraform destroy -auto-approve -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars -lock=false
+        run: terraform destroy -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -auto-approve -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars -lock=false
         working-directory: ./environments/infra
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -85,7 +85,7 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
       - name: Terraform Plan for Destroy (Prod)
-        run: terraform plan -auto-approve -var "admin_password=$ADMIN_PASSWORD" -destroy -var-file=prod.tfvars -lock=false
+        run: terraform plan -auto-approve -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -destroy -var-file=prod.tfvars -lock=false
         working-directory: ./environments/infra
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -100,7 +100,7 @@ jobs:
           approvers: team-leads
 
       - name: Terraform Destroy (Prod)
-        run: terraform destroy -auto-approve -var "admin_password=$ADMIN_PASSWORD" -auto-approve -var-file=prod.tfvars -lock=false
+        run: terraform destroy -auto-approve -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -auto-approve -var-file=prod.tfvars -lock=false
         working-directory: ./environments/infra
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
