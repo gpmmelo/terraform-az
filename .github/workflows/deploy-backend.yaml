@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Deploy Dev on push to developer
+  # Deploy Dev on push to `developer`
   deploy-dev:
     if: github.ref == 'refs/heads/developer'  # Run only on developer branch
     runs-on: ubuntu-latest
@@ -35,7 +35,7 @@ jobs:
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Ensure this is set
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
 
@@ -45,7 +45,7 @@ jobs:
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Ensure this is set
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
 
@@ -55,13 +55,22 @@ jobs:
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Ensure this is set
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
 
-  # Deploy Prod on PR merge to main
+  # Manual approval before deploying to production
+  wait-for-approval:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aguardando Aprovação Manual
+        run: echo "Aguardando aprovação de gpmmelo..."
+    timeout-minutes: 60  # Timeout if no approval after 60 minutes
+
+  # Deploy Prod on PR merge to `main`
   deploy-prod:
-    if: github.event_name == 'pull_request_target' && github.base_ref == 'main'  # Run only on PR to main
+    needs: wait-for-approval  # Waits for manual approval before running
+    if: github.event_name == 'pull_request_target' && github.base_ref == 'main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -78,7 +87,7 @@ jobs:
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Ensure this is set
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
       - name: Terraform Plan for Prod
@@ -87,13 +96,8 @@ jobs:
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Ensure this is set
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-
-      - name: Wait for manual approval (Production Deploy)
-        uses: hmarr/auto-approve-action@v3
-        with:
-          github-token: ${{ secrets.GH_PAT }}
 
       - name: Terraform Apply for Prod
         run: terraform apply -auto-approve -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD_PROD" -var-file=prod.tfvars
@@ -101,5 +105,5 @@ jobs:
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Ensure this is set
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
