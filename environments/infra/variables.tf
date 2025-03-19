@@ -67,7 +67,7 @@ variable "nsg" {
 }
 variable "name_public_ip" {
   type = string
-  
+
 }
 variable "vnet_name" {
   description = "Name of the virtual network"

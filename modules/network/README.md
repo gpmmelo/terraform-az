@@ -36,6 +36,8 @@ No modules.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_address_space"></a> [address\_space](#output\_address\_space) | The address space of the virtual network |
 | <a name="output_subnet_id"></a> [subnet\_id](#output\_subnet\_id) | ID of the subnet |
+| <a name="output_subnet_prefixes"></a> [subnet\_prefixes](#output\_subnet\_prefixes) | The address prefixes of the subnet |
 | <a name="output_vnet_id"></a> [vnet\_id](#output\_vnet\_id) | ID of the virtual network |
 <!-- END_TF_DOCS -->
