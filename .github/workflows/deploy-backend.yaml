@@ -94,7 +94,7 @@ jobs:
         uses: hmarr/auto-approve-action@v3
 
       - name: Terraform Apply for Prod
-        run: terraform apply -auto-approve -var-file=prod.tfvars
+        run: terraform apply -auto-approve -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD_PROD" -var-file=prod.tfvars
         working-directory: ./environments/infra
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
