@@ -3,12 +3,10 @@ name: Deploy Environments
 on:
   push:
     branches:
-      - developer  # Trigger on push to developer branch
+      - developer  # Trigger on push to developer branch (Deploy Dev)
+      - main       # Trigger on push to main (Deploy Prod)
     paths:
       - 'environments/**'
-  pull_request_target:
-    branches:
-      - main  # Trigger on PR to main (prod deployment after approval)
   workflow_dispatch:  # Allow manual triggers for production deploy/destroy
 
 concurrency:
@@ -18,7 +16,7 @@ concurrency:
 jobs:
   # Deploy Dev on push to `developer`
   deploy-dev:
-    if: github.ref == 'refs/heads/developer'  # Run only on developer branch
+    if: github.ref == 'refs/heads/developer'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -42,35 +40,14 @@ jobs:
       - name: Terraform Plan for Dev
         run: terraform plan -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars
         working-directory: ./environments/infra
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
 
       - name: Terraform Apply for Dev
         run: terraform apply -auto-approve -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars
         working-directory: ./environments/infra
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
 
-  # Manual approval before deploying to production
-  wait-for-approval:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Aguardando Aprovação Manual
-        run: echo "Aguardando aprovação de gpmmelo..."
-    timeout-minutes: 60  # Timeout if no approval after 60 minutes
-
-  # Deploy Prod on PR merge to `main`
+  # Deploy Prod after PR is merged into `main`
   deploy-prod:
-    needs: wait-for-approval  # Waits for manual approval before running
-    if: github.event_name == 'pull_request_target' && github.base_ref == 'main'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -93,17 +70,7 @@ jobs:
       - name: Terraform Plan for Prod
         run: terraform plan -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD_PROD" -var-file=prod.tfvars
         working-directory: ./environments/infra
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
       - name: Terraform Apply for Prod
         run: terraform apply -auto-approve -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD_PROD" -var-file=prod.tfvars
         working-directory: ./environments/infra
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
