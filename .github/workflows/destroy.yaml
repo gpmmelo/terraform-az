@@ -1,24 +1,22 @@
-name: Destroy Environments
+name: Deploy Environments
 
 on:
   push:
     branches:
-      - developer  # Trigger on push to developer branch
+      - developer  # Trigger on push to developer branch (Deploy Dev)
+      - main       # Trigger on push to main (Deploy Prod)
     paths:
       - 'environments/**'
-  pull_request:
-    branches:
-      - main  # Trigger on PR to main (prod deployment after approval)
   workflow_dispatch:  # Allow manual triggers for production deploy/destroy
 
 concurrency:
-  group: destroy-${{ github.ref }}
+  group: deploy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-# Destroy Dev Infra (Manual Trigger)
-  destroy-dev:
-    if: github.event_name == 'workflow_dispatch'  # Run only on manual trigger
+  # Deploy Dev on push to `developer`
+  deploy-dev:
+    if: github.ref == 'refs/heads/developer'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -35,36 +33,21 @@ jobs:
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Ensure this is set
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
 
-      - name: Terraform Plan for Destroy (Dev)
-        run: terraform plan -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars -lock=false
+      - name: Terraform Plan for Dev
+        run: terraform plan -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars
         working-directory: ./environments/infra
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Ensure this is set
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
-      - name: Wait for manual approval
-        uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ github.token }}
-          approvers: team-leads
-
-      - name: Terraform Destroy (Dev)
-        run: terraform destroy -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -auto-approve -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars -lock=false
+      - name: Terraform Destroy for Dev
+        run: terraform destroy -auto-approve -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars
         working-directory: ./environments/infra
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Ensure this is set
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
-  # Destroy Prod Infra (Manual Trigger)
-  destroy-prod:
-    if: github.event_name == 'workflow_dispatch'  # Run only on manual trigger
+  # Deploy Prod after PR is merged into `main`
+  deploy-prod:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -81,29 +64,13 @@ jobs:
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Ensure this is set
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
-      - name: Terraform Plan for Destroy (Prod)
-        run: terraform plan -auto-approve -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -destroy -var-file=prod.tfvars -lock=false
+      - name: Terraform Plan for Prod
+        run: terraform plan -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD_PROD" -var-file=prod.tfvars
         working-directory: ./environments/infra
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Ensure this is set
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
-      - name: Wait for manual approval
-        uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ github.token }}
-          approvers: team-leads
-
-      - name: Terraform Destroy (Prod)
-        run: terraform destroy -auto-approve -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -auto-approve -var-file=prod.tfvars -lock=false
+      - name: Terraform Destroy for Prod
+        run: terraform destroy -auto-approve -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD_PROD" -var-file=prod.tfvars
         working-directory: ./environments/infra
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Ensure this is set
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
