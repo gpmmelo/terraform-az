@@ -10,7 +10,7 @@ on:
   workflow_dispatch:  # Allow manual triggers for production deploy/destroy
 
 concurrency:
-  group: deploy-and-destroy-${{ github.ref }}
+  group: deploy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
