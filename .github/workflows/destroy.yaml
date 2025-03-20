@@ -71,13 +71,13 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        run: terraform init -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -backend-config=backend-prod.tfvars
+        run: terraform init -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -backend-config=backend-dev.tfvars || terraform force-unlock $(terraform show -json | jq -r '.lock_id') -force
         working-directory: ./environments/infra
         env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+           ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+           ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
       - name: Terraform Plan for Prod
         run: terraform plan -destroy -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD_PROD" -var-file=prod.tfvars
