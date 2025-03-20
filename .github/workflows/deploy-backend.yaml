@@ -22,11 +22,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -45,10 +40,22 @@ jobs:
       - name: Terraform Plan for Dev
         run: terraform plan -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars
         working-directory: ./environments/infra
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
 
       - name: Terraform Apply for Dev
         run: terraform apply -auto-approve -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars
         working-directory: ./environments/infra
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
 
   # Deploy Prod after PR is merged into `main`
   deploy-prod:
@@ -57,11 +64,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
@@ -80,7 +82,19 @@ jobs:
       - name: Terraform Plan for Prod
         run: terraform plan -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD_PROD" -var-file=prod.tfvars
         working-directory: ./environments/infra
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ADMIN_PASSWORD_PROD: ${{ secrets.ADMIN_PASSWORD_PROD }}
 
       - name: Terraform Apply for Prod
         run: terraform apply -auto-approve -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD_PROD" -var-file=prod.tfvars
         working-directory: ./environments/infra
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ADMIN_PASSWORD_PROD: ${{ secrets.ADMIN_PASSWORD_PROD }}

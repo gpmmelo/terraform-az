@@ -7,25 +7,20 @@ on:
       - main       # Trigger on push to main (destroy Prod)
     paths:
       - 'environments/**'
-  workflow_dispatch:  # Allow manual triggers for production destroy/destroy
+  workflow_dispatch:  # Allow manual triggers for production destroy
 
 concurrency:
   group: destroy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # Deploy Dev on push to `developer`
+  # Destroy Dev on push to `developer`
   destroy-dev:
     if: github.ref == 'refs/heads/developer'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}  
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
@@ -43,25 +38,32 @@ jobs:
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
 
       - name: Terraform Plan for Dev
-        run: terraform plan -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars
+        run: terraform plan -destroy -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars
         working-directory: ./environments/infra
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
 
       - name: Terraform Destroy for Dev
         run: terraform destroy -auto-approve -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars
         working-directory: ./environments/infra
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
 
-  # destroy Prod after PR is merged into `main`
+  # Destroy Prod after PR is merged into `main`
   destroy-prod:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}  
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
@@ -78,9 +80,21 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
       - name: Terraform Plan for Prod
-        run: terraform plan -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD_PROD" -var-file=prod.tfvars
+        run: terraform plan -destroy -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD_PROD" -var-file=prod.tfvars
         working-directory: ./environments/infra
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ADMIN_PASSWORD_PROD: ${{ secrets.ADMIN_PASSWORD_PROD }}
 
       - name: Terraform Destroy for Prod
         run: terraform destroy -auto-approve -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD_PROD" -var-file=prod.tfvars
         working-directory: ./environments/infra
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ADMIN_PASSWORD_PROD: ${{ secrets.ADMIN_PASSWORD_PROD }}
