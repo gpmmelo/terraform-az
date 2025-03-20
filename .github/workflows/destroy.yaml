@@ -1,21 +1,21 @@
-name: Deploy Environments
+name: Destroy Environments
 
 on:
   push:
     branches:
-      - developer  # Trigger on push to developer branch (Deploy Dev)
-      - main       # Trigger on push to main (Deploy Prod)
+      - developer  # Trigger on push to developer branch (destroy Dev)
+      - main       # Trigger on push to main (destroy Prod)
     paths:
       - 'environments/**'
-  workflow_dispatch:  # Allow manual triggers for production deploy/destroy
+  workflow_dispatch:  # Allow manual triggers for production destroy/destroy
 
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: destroy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   # Deploy Dev on push to `developer`
-  deploy-dev:
+  destroy-dev:
     if: github.ref == 'refs/heads/developer'
     runs-on: ubuntu-latest
     steps:
@@ -45,8 +45,8 @@ jobs:
         run: terraform destroy -auto-approve -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -var "admin_password=$ADMIN_PASSWORD" -var-file=dev.tfvars
         working-directory: ./environments/infra
 
-  # Deploy Prod after PR is merged into `main`
-  deploy-prod:
+  # destroy Prod after PR is merged into `main`
+  destroy-prod:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
