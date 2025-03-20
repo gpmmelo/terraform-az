@@ -71,7 +71,7 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        run: terraform init -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -backend-config=backend-dev.tfvars || terraform force-unlock $(terraform show -json | jq -r '.lock_id') -force
+        run: terraform init -var "subscription_id=$AZURE_SUBSCRIPTION_ID" -backend-config=backend-dev.tfvars 
         working-directory: ./environments/infra
         env:
            ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
